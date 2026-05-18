@@ -85,6 +85,23 @@ export default function Home() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
+    // Cargar el logo de Sitti (versión clara) desde la carpeta public
+    async function loadLogo() {
+      try {
+        const resp = await fetch("/sitti-logo-light.png");
+        const blob = await resp.blob();
+        return await new Promise((res) => {
+          const fr = new FileReader();
+          fr.onload = () => res(fr.result);
+          fr.onerror = () => res(null);
+          fr.readAsDataURL(blob);
+        });
+      } catch {
+        return null;
+      }
+    }
+    const logoData = await loadLogo();
+
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const margin = 56;
@@ -165,14 +182,28 @@ export default function Home() {
     doc.setFillColor(245, 166, 35);
     doc.rect((pageW / 3) * 2, 110, pageW / 3, 5, "F");
 
+    // Logo de Sitti (arriba a la derecha del encabezado)
+    if (logoData) {
+      const logoW = 110;
+      const logoH = logoW * (142 / 360); // proporción real del archivo
+      doc.addImage(
+        logoData,
+        "PNG",
+        pageW - margin - logoW,
+        34,
+        logoW,
+        logoH
+      );
+    }
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(255, 255, 255);
-    doc.text("MANUAL DE LÍDERES", margin, 52);
+    doc.text("MANUAL DE LÍDERES", margin, 56);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(13);
+    doc.setFontSize(12);
     doc.setTextColor(60, 191, 180);
-    doc.text("Sitti", margin, 74);
+    doc.text("Sitti", margin, 76);
 
     const label = cand.alias?.trim() ? cand.alias.trim() : "Candidato " + cand.id;
     doc.setFontSize(11);
@@ -226,13 +257,11 @@ export default function Home() {
         <div className="sitti-hero">
           <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-20">
             <div className="flex items-center gap-3 mb-8">
-              <SittiMark />
-              <span
-                className="font-display text-2xl"
-                style={{ color: "var(--indigo)", letterSpacing: "-0.02em" }}
-              >
-                sitti
-              </span>
+              <img
+                src="/sitti-logo.png"
+                alt="Sitti"
+                style={{ height: "44px", width: "auto" }}
+              />
             </div>
             <p
               className="text-xs tracking-[0.35em] uppercase mb-4"
@@ -424,40 +453,6 @@ export default function Home() {
         </footer>
       </div>
     </main>
-  );
-}
-
-function SittiMark() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-      <path
-        d="M20 3a17 17 0 0 1 12 5"
-        stroke="#F5A623"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <path
-        d="M32 8a17 17 0 0 1 5 12"
-        stroke="#3CBFB4"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <path
-        d="M8 32a17 17 0 0 1-5-12"
-        stroke="#3CBFB4"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <path
-        d="M20 37a17 17 0 0 1-12-5"
-        stroke="#F5A623"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <rect x="13" y="13" width="14" height="3" rx="1.5" fill="#E8553E" />
-      <rect x="18.5" y="13" width="3" height="14" rx="1.5" fill="#E8553E" />
-      <circle cx="11" cy="24" r="1.6" fill="#E8553E" />
-    </svg>
   );
 }
 
