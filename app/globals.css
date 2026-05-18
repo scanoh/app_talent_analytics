@@ -1,19 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-display: 'Fraunces';
-  --font-body: 'Spline Sans';
-  --ink: #1a2b25;
-  --paper: #f4f1ea;
-  --moss: #2d5a3d;
-  --moss-light: #4a8c5f;
-  --clay: #c4663f;
-  --sand: #e8e2d4;
-  --line: #d4cdbe;
+  --font-display: 'Poppins';
+  --font-body: 'Nunito Sans';
+
+  /* Paleta Sitti */
+  --indigo: #2e2a75;
+  --coral: #e8553e;
+  --turq: #3cbfb4;
+  --gold: #f5a623;
+
+  --ink: #2b2b3a;
+  --paper: #ffffff;
+  --line: #e6e4f0;
 }
 
 * {
@@ -29,18 +32,41 @@ html, body {
 }
 
 .font-display {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
 }
 
 ::selection {
-  background: var(--moss);
-  color: var(--paper);
+  background: var(--turq);
+  color: #fff;
 }
 
-/* Scrollbar sutil */
 ::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: var(--sand); }
-::-webkit-scrollbar-thumb { background: var(--moss); border-radius: 5px; }
+::-webkit-scrollbar-track { background: #f2f1f8; }
+::-webkit-scrollbar-thumb { background: var(--indigo); border-radius: 5px; }
+
+/* Hero con un degradado suave en los tonos de Sitti */
+.sitti-hero {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(60,191,180,0.10), transparent 45%),
+    radial-gradient(circle at 88% 30%, rgba(245,166,35,0.10), transparent 45%),
+    radial-gradient(circle at 60% 90%, rgba(232,85,62,0.08), transparent 50%),
+    #ffffff;
+}
+
+/* Barra tricolor de marca */
+.sitti-bar {
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--coral) 0%,
+    var(--coral) 33.33%,
+    var(--turq) 33.33%,
+    var(--turq) 66.66%,
+    var(--gold) 66.66%,
+    var(--gold) 100%
+  );
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -51,17 +77,11 @@ html, body {
   animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes pulse-ring {
-  0%   { transform: scale(0.95); opacity: 0.7; }
-  70%  { transform: scale(1.1); opacity: 0; }
-  100% { transform: scale(0.95); opacity: 0; }
-}
-
 .spinner {
   width: 44px;
   height: 44px;
-  border: 3px solid var(--sand);
-  border-top-color: var(--moss);
+  border: 3px solid #e6e4f0;
+  border-top-color: var(--turq);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }

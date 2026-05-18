@@ -51,9 +51,7 @@ export default function Home() {
     const cand = candidates.find((c) => c.id === id);
     if (!cand) return;
     if (cand.files.length < 2) {
-      updateCandidate(id, {
-        error: "Sube los 2 PDF (Genoma y Talent View 3D).",
-      });
+      updateCandidate(id, { error: "Sube los 2 PDF de la persona." });
       return;
     }
 
@@ -61,6 +59,7 @@ export default function Home() {
 
     const fd = new FormData();
     cand.files.forEach((f) => fd.append("files", f));
+    fd.append("alias", cand.alias?.trim() || "");
 
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: fd });
@@ -92,10 +91,11 @@ export default function Home() {
     const contentW = pageW - margin * 2;
     let y = margin;
 
-    const inkA = [26, 43, 37];
-    const mossA = [45, 90, 61];
-    const clayA = [196, 102, 63];
-    const grayA = [110, 110, 110];
+    // Paleta Sitti
+    const indigo = [46, 42, 117];
+    const coral = [232, 85, 62];
+    const turq = [60, 191, 180];
+    const ink = [38, 38, 54];
 
     function newPageIfNeeded(extra = 0) {
       if (y + extra > pageH - margin) {
@@ -108,169 +108,168 @@ export default function Home() {
       newPageIfNeeded(46);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(13);
-      doc.setTextColor(...mossA);
+      doc.setTextColor(...indigo);
       doc.text(txt.toUpperCase(), margin, y);
-      y += 8;
-      doc.setDrawColor(...mossA);
-      doc.setLineWidth(1.2);
-      doc.line(margin, y, margin + contentW, y);
-      y += 18;
+      y += 9;
+      doc.setDrawColor(...turq);
+      doc.setLineWidth(2);
+      doc.line(margin, y, margin + 70, y);
+      y += 20;
     }
 
     function paragraph(txt) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10.5);
-      doc.setTextColor(...inkA);
+      doc.setTextColor(...ink);
       const lines = doc.splitTextToSize(txt || "—", contentW);
       lines.forEach((ln) => {
         newPageIfNeeded(16);
         doc.text(ln, margin, y);
-        y += 15;
+        y += 15.5;
       });
       y += 10;
     }
 
-    function compTitle(name, nivel) {
-      newPageIfNeeded(20);
+    function compBlock(name, desc) {
+      newPageIfNeeded(24);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11.5);
-      doc.setTextColor(...clayA);
-      doc.text("• " + (name || ""), margin, y);
-      if (nivel) {
-        doc.setFont("helvetica", "italic");
-        doc.setFontSize(9);
-        doc.setTextColor(...grayA);
-        doc.text("[" + nivel + "]", margin + 250, y);
-      }
-      y += 16;
-    }
-
-    function field(label, value) {
-      if (!value) return;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.setTextColor(...mossA);
-      newPageIfNeeded(15);
-      doc.text(label, margin + 14, y);
-      y += 13;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(...inkA);
-      const lines = doc.splitTextToSize(value, contentW - 14);
-      lines.forEach((ln) => {
-        newPageIfNeeded(14);
-        doc.text(ln, margin + 14, y);
-        y += 14;
+      doc.setTextColor(...coral);
+      const nameLines = doc.splitTextToSize(name || "", contentW);
+      nameLines.forEach((ln) => {
+        newPageIfNeeded(16);
+        doc.text(ln, margin, y);
+        y += 16;
       });
-      y += 6;
+      y += 2;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10.5);
+      doc.setTextColor(...ink);
+      const descLines = doc.splitTextToSize(desc || "", contentW);
+      descLines.forEach((ln) => {
+        newPageIfNeeded(15);
+        doc.text(ln, margin, y);
+        y += 15;
+      });
+      y += 14;
     }
 
-    // Encabezado del documento
-    doc.setFillColor(...mossA);
-    doc.rect(0, 0, pageW, 90, "F");
+    // Portada / encabezado
+    doc.setFillColor(...indigo);
+    doc.rect(0, 0, pageW, 110, "F");
+    // acentos de color Sitti
+    doc.setFillColor(...coral);
+    doc.rect(0, 110, pageW / 3, 5, "F");
+    doc.setFillColor(...turq);
+    doc.rect(pageW / 3, 110, pageW / 3, 5, "F");
+    doc.setFillColor(245, 166, 35);
+    doc.rect((pageW / 3) * 2, 110, pageW / 3, 5, "F");
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(244, 241, 234);
-    doc.text("Informe de Análisis de Talento", margin, 44);
+    doc.setFontSize(22);
+    doc.setTextColor(255, 255, 255);
+    doc.text("MANUAL DE LÍDERES", margin, 52);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(13);
+    doc.setTextColor(60, 191, 180);
+    doc.text("Sitti", margin, 74);
+
     const label = cand.alias?.trim() ? cand.alias.trim() : "Candidato " + cand.id;
-    doc.text(label + "  ·  Reporte anónimo · Análisis detallado", margin, 64);
-    y = 120;
+    doc.setFontSize(11);
+    doc.setTextColor(230, 230, 240);
+    doc.text("Retrato de: " + label, margin, 96);
+
+    y = 145;
 
     const r = cand.result;
 
-    heading("Estilo de comunicación y de trabajo");
+    heading("Cómo se comunica y trabaja " + label);
     paragraph(r.estilo_comunicacion_y_trabajo);
 
-    heading("Motivación");
+    heading("Qué motiva a " + label);
     paragraph(r.motivacion);
 
-    heading("Competencias más desarrolladas");
-    (r.competencias_desarrolladas || []).forEach((c) => {
-      compTitle(c.competencia, c.nivel);
-      field("Evidencia en los tests:", c.evidencia);
-      field("Cómo se manifiesta en el trabajo:", c.manifestacion_laboral);
-      field("Valor para el rol:", c.valor_para_el_rol);
-      y += 4;
-    });
+    heading("Sus fortalezas más visibles");
+    (r.competencias_desarrolladas || []).forEach((c) =>
+      compBlock(c.competencia, c.descripcion)
+    );
 
-    heading("Competencias a fortalecer");
-    (r.competencias_a_fortalecer || []).forEach((c) => {
-      compTitle(c.competencia, c.nivel);
-      field("Evidencia en los tests:", c.evidencia);
-      field("Riesgo práctico:", c.riesgo_practico);
-      field("Recomendación de desarrollo:", c.recomendacion);
-      y += 4;
-    });
+    heading("Dónde puede seguir creciendo");
+    (r.competencias_a_fortalecer || []).forEach((c) =>
+      compBlock(c.competencia, c.descripcion)
+    );
 
-    heading("Conclusión para el líder");
+    heading("Para ti, como líder");
     paragraph(r.conclusion_para_el_lider);
 
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
+      doc.setTextColor(150, 150, 160);
       doc.text(
-        "Generado con IA · Documento confidencial · " + i + "/" + pageCount,
+        "Manual de Líderes · Sitti · Documento confidencial · " +
+          i +
+          "/" +
+          pageCount,
         margin,
         pageH - 24
       );
     }
 
-    doc.save("informe_" + label.replace(/\s+/g, "_").toLowerCase() + ".pdf");
+    doc.save("manual_lideres_" + label.replace(/\s+/g, "_").toLowerCase() + ".pdf");
   }
 
   return (
     <main className="min-h-screen">
-      <header
-        className="relative overflow-hidden border-b"
-        style={{ borderColor: "var(--line)" }}
-      >
-        <div
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, var(--moss) 1px, transparent 0)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-        <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-20">
-          <p
-            className="text-xs tracking-[0.3em] uppercase mb-5"
-            style={{ color: "var(--clay)" }}
-          >
-            Selección · Psicometría · IA
-          </p>
-          <h1
-            className="font-display text-5xl md:text-7xl leading-[0.95] mb-6"
-            style={{ color: "var(--ink)" }}
-          >
-            Análisis de
-            <br />
-            <span style={{ color: "var(--moss)" }}>Talento</span>
-          </h1>
-          <p
-            className="max-w-xl text-base md:text-lg leading-relaxed"
-            style={{ color: "var(--ink)", opacity: 0.75 }}
-          >
-            Sube los reportes <strong>Genoma</strong> y{" "}
-            <strong>Talent View 3D</strong> de cada persona. La IA genera un
-            informe <em>detallado por competencia</em>, anónimo y descargable en
-            PDF, listo para el líder del proceso.
-          </p>
+      <header className="relative overflow-hidden">
+        <div className="sitti-hero">
+          <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-20">
+            <div className="flex items-center gap-3 mb-8">
+              <SittiMark />
+              <span
+                className="font-display text-2xl"
+                style={{ color: "var(--indigo)", letterSpacing: "-0.02em" }}
+              >
+                sitti
+              </span>
+            </div>
+            <p
+              className="text-xs tracking-[0.35em] uppercase mb-4"
+              style={{ color: "var(--coral)" }}
+            >
+              Conoce a tu equipo
+            </p>
+            <h1
+              className="font-display text-5xl md:text-7xl leading-[0.95] mb-6"
+              style={{ color: "var(--indigo)" }}
+            >
+              Manual de
+              <br />
+              <span style={{ color: "var(--turq)" }}>Líderes</span>
+            </h1>
+            <p
+              className="max-w-xl text-base md:text-lg leading-relaxed"
+              style={{ color: "var(--ink)", opacity: 0.8 }}
+            >
+              Sube los dos documentos de evaluación de cada persona y asígnale un
+              alias. Recibirás un retrato cálido y humano —sin nombres, sin
+              tecnicismos— pensado para ayudarte a liderarle mejor.
+            </p>
+          </div>
         </div>
+        <div className="sitti-bar" />
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-12">
         {candidates.map((cand, idx) => (
           <section
             key={cand.id}
-            className="fade-up mb-8 rounded-2xl border bg-white/50"
+            className="fade-up mb-8 rounded-2xl border bg-white"
             style={{
               borderColor: "var(--line)",
               animationDelay: `${idx * 0.05}s`,
+              boxShadow: "0 1px 3px rgba(46,42,117,0.06)",
             }}
           >
             <div
@@ -280,7 +279,7 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <div
                   className="w-11 h-11 rounded-full flex items-center justify-center font-display text-lg font-semibold"
-                  style={{ background: "var(--moss)", color: "var(--paper)" }}
+                  style={{ background: "var(--indigo)", color: "#fff" }}
                 >
                   {cand.id}
                 </div>
@@ -292,13 +291,14 @@ export default function Home() {
                     }
                     placeholder={`Alias del candidato ${cand.id}`}
                     className="bg-transparent font-display text-xl outline-none border-b border-transparent focus:border-current transition-colors"
-                    style={{ color: "var(--ink)" }}
+                    style={{ color: "var(--indigo)" }}
                   />
                   <p
                     className="text-xs mt-0.5"
                     style={{ color: "var(--ink)", opacity: 0.5 }}
                   >
-                    Asigna un alias · el nombre real nunca aparece en el informe
+                    El retrato se escribirá usando este alias · el nombre real
+                    nunca aparece
                   </p>
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function Home() {
                 <button
                   onClick={() => removeCandidate(cand.id)}
                   className="text-sm px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5"
-                  style={{ color: "var(--clay)" }}
+                  style={{ color: "var(--coral)" }}
                 >
                   Quitar
                 </button>
@@ -315,7 +315,7 @@ export default function Home() {
 
             <div className="px-6 py-6">
               <label
-                className="block cursor-pointer rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors hover:bg-black/[0.02]"
+                className="block cursor-pointer rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors hover:bg-black/[0.015]"
                 style={{ borderColor: "var(--line)" }}
               >
                 <input
@@ -327,7 +327,7 @@ export default function Home() {
                 />
                 <div
                   className="font-display text-lg mb-1"
-                  style={{ color: "var(--moss)" }}
+                  style={{ color: "var(--turq)" }}
                 >
                   {cand.files.length > 0
                     ? `${cand.files.length} archivo(s) seleccionado(s)`
@@ -337,7 +337,7 @@ export default function Home() {
                   className="text-sm"
                   style={{ color: "var(--ink)", opacity: 0.6 }}
                 >
-                  Genoma + Talent View 3D · clic para seleccionar
+                  Los dos documentos de evaluación · clic para seleccionar
                 </p>
                 {cand.files.length > 0 && (
                   <ul
@@ -356,7 +356,7 @@ export default function Home() {
               {cand.error && (
                 <p
                   className="mt-4 text-sm px-4 py-3 rounded-lg"
-                  style={{ background: "#fbeae3", color: "var(--clay)" }}
+                  style={{ background: "#fdecea", color: "var(--coral)" }}
                 >
                   {cand.error}
                 </p>
@@ -367,19 +367,19 @@ export default function Home() {
                   onClick={() => analyzeCandidate(cand.id)}
                   disabled={cand.status === "loading"}
                   className="px-6 py-3 rounded-xl font-medium transition-all disabled:opacity-50 hover:translate-y-[-1px]"
-                  style={{ background: "var(--moss)", color: "var(--paper)" }}
+                  style={{ background: "var(--indigo)", color: "#fff" }}
                 >
                   {cand.status === "loading"
-                    ? "Analizando…"
-                    : "Analizar candidato"}
+                    ? "Escribiendo el retrato…"
+                    : "Generar manual"}
                 </button>
                 {cand.status === "done" && (
                   <button
                     onClick={() => downloadPdf(cand)}
-                    className="px-6 py-3 rounded-xl font-medium transition-all hover:translate-y-[-1px] border"
+                    className="px-6 py-3 rounded-xl font-medium transition-all hover:translate-y-[-1px] border-2"
                     style={{
-                      borderColor: "var(--moss)",
-                      color: "var(--moss)",
+                      borderColor: "var(--turq)",
+                      color: "var(--turq)",
                     }}
                   >
                     ↓ Descargar PDF
@@ -391,13 +391,13 @@ export default function Home() {
                 <div className="mt-8 flex items-center gap-4">
                   <div className="spinner" />
                   <p style={{ color: "var(--ink)", opacity: 0.6 }}>
-                    Leyendo los reportes y construyendo el análisis detallado…
+                    Conociendo a la persona y escribiendo su retrato…
                   </p>
                 </div>
               )}
 
               {cand.status === "done" && cand.result && (
-                <ResultView result={cand.result} />
+                <ResultView result={cand.result} alias={cand.alias} id={cand.id} />
               )}
             </div>
           </section>
@@ -405,8 +405,8 @@ export default function Home() {
 
         <button
           onClick={addCandidate}
-          className="w-full py-5 rounded-2xl border-2 border-dashed font-display text-lg transition-colors hover:bg-black/[0.02]"
-          style={{ borderColor: "var(--line)", color: "var(--moss)" }}
+          className="w-full py-5 rounded-2xl border-2 border-dashed font-display text-lg transition-colors hover:bg-black/[0.015]"
+          style={{ borderColor: "var(--line)", color: "var(--indigo)" }}
         >
           + Añadir otro candidato
         </button>
@@ -419,118 +419,125 @@ export default function Home() {
             opacity: 0.5,
           }}
         >
-          Los informes se generan con IA y no exponen datos personales. Úsalos
-          como apoyo, no como decisión única del proceso.
+          Manual de Líderes · Sitti — Un apoyo para liderar mejor, no una
+          decisión única del proceso.
         </footer>
       </div>
     </main>
   );
 }
 
-function ResultView({ result }) {
+function SittiMark() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+      <path
+        d="M20 3a17 17 0 0 1 12 5"
+        stroke="#F5A623"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M32 8a17 17 0 0 1 5 12"
+        stroke="#3CBFB4"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 32a17 17 0 0 1-5-12"
+        stroke="#3CBFB4"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M20 37a17 17 0 0 1-12-5"
+        stroke="#F5A623"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <rect x="13" y="13" width="14" height="3" rx="1.5" fill="#E8553E" />
+      <rect x="18.5" y="13" width="3" height="14" rx="1.5" fill="#E8553E" />
+      <circle cx="11" cy="24" r="1.6" fill="#E8553E" />
+    </svg>
+  );
+}
+
+function ResultView({ result, alias }) {
+  const name = alias && alias.trim() ? alias.trim() : "esta persona";
+
   const Section = ({ title, children }) => (
-    <div className="mb-8">
+    <div className="mb-9">
       <h3
-        className="font-display text-xl mb-3 pb-2 border-b"
-        style={{ color: "var(--moss)", borderColor: "var(--line)" }}
+        className="font-display text-xl mb-1"
+        style={{ color: "var(--indigo)" }}
       >
         {title}
       </h3>
       <div
-        style={{ color: "var(--ink)", opacity: 0.85 }}
-        className="leading-relaxed"
+        className="w-14 h-[3px] rounded-full mb-4"
+        style={{ background: "var(--turq)" }}
+      />
+      <div
+        style={{ color: "var(--ink)", opacity: 0.9 }}
+        className="leading-relaxed space-y-3"
       >
         {children}
       </div>
     </div>
   );
 
-  const Field = ({ label, value }) =>
-    value ? (
-      <p className="mt-2">
-        <span
-          className="font-semibold"
-          style={{ color: "var(--moss)" }}
-        >
-          {label}{" "}
-        </span>
-        {value}
-      </p>
-    ) : null;
-
-  const CompCard = ({ c, kind }) => (
-    <div
-      className="rounded-xl p-5 border bg-white/60"
-      style={{ borderColor: "var(--line)" }}
-    >
-      <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <span
-          className="font-display text-lg"
-          style={{ color: "var(--clay)" }}
-        >
-          {c.competencia}
-        </span>
-        {c.nivel && (
-          <span
-            className="text-xs px-2 py-1 rounded-full"
-            style={{ background: "var(--sand)", color: "var(--ink)" }}
-          >
-            {c.nivel}
-          </span>
-        )}
-      </div>
-      <Field label="Evidencia en los tests:" value={c.evidencia} />
-      {kind === "strong" ? (
-        <>
-          <Field
-            label="Cómo se manifiesta en el trabajo:"
-            value={c.manifestacion_laboral}
-          />
-          <Field label="Valor para el rol:" value={c.valor_para_el_rol} />
-        </>
-      ) : (
-        <>
-          <Field label="Riesgo práctico:" value={c.riesgo_practico} />
-          <Field
-            label="Recomendación de desarrollo:"
-            value={c.recomendacion}
-          />
-        </>
-      )}
-    </div>
-  );
+  const paragraphs = (txt) =>
+    String(txt || "")
+      .split(/\n{2,}|\n/)
+      .filter((p) => p.trim())
+      .map((p, i) => <p key={i}>{p.trim()}</p>);
 
   return (
     <div
-      className="fade-up mt-8 rounded-xl p-6 md:p-8"
-      style={{ background: "var(--sand)" }}
+      className="fade-up mt-8 rounded-xl p-6 md:p-9"
+      style={{ background: "#f7f6fb" }}
     >
-      <Section title="Estilo de comunicación y de trabajo">
-        <p>{result.estilo_comunicacion_y_trabajo}</p>
+      <Section title={`Cómo se comunica y trabaja ${name}`}>
+        {paragraphs(result.estilo_comunicacion_y_trabajo)}
       </Section>
 
-      <Section title="Motivación">
-        <p>{result.motivacion}</p>
+      <Section title={`Qué motiva a ${name}`}>
+        {paragraphs(result.motivacion)}
       </Section>
 
-      <Section title="Competencias más desarrolladas">
-        <div className="space-y-4">
+      <Section title="Sus fortalezas más visibles">
+        <div className="space-y-5">
           {(result.competencias_desarrolladas || []).map((c, i) => (
-            <CompCard key={i} c={c} kind="strong" />
+            <div key={i}>
+              <p
+                className="font-display text-lg mb-1"
+                style={{ color: "var(--coral)" }}
+              >
+                {c.competencia}
+              </p>
+              <p>{c.descripcion}</p>
+            </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Competencias a fortalecer">
-        <div className="space-y-4">
+      <Section title="Dónde puede seguir creciendo">
+        <div className="space-y-5">
           {(result.competencias_a_fortalecer || []).map((c, i) => (
-            <CompCard key={i} c={c} kind="weak" />
+            <div key={i}>
+              <p
+                className="font-display text-lg mb-1"
+                style={{ color: "var(--coral)" }}
+              >
+                {c.competencia}
+              </p>
+              <p>{c.descripcion}</p>
+            </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Conclusión para el líder">
-        <p>{result.conclusion_para_el_lider}</p>
+      <Section title="Para ti, como líder">
+        {paragraphs(result.conclusion_para_el_lider)}
       </Section>
     </div>
   );
