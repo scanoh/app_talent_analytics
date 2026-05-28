@@ -318,7 +318,7 @@ export default function Home() {
                     onChange={(e) =>
                       updateCandidate(cand.id, { alias: e.target.value })
                     }
-                    placeholder={`Alias del candidato ${cand.id}`}
+                    placeholder={`Nombre del talento ${cand.id}`}
                     className="bg-transparent font-display text-xl outline-none border-b border-transparent focus:border-current transition-colors"
                     style={{ color: "var(--indigo)" }}
                   />
